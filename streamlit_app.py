@@ -55,8 +55,11 @@ if st.button("Get latest prediction"):
     st.metric("Predicted next-day close (USD)", f"{y_pred:,.2f}")
 
     # show last N actual vs predicted (we can show last close)
-    fig = px.line(df.reset_index().tail(120), x='date', y='close', title='Recent Close Prices')
-    st.plotly_chart(fig, use_container_width=True)
+    # Show last 120 days close price chart
+df_plot = df.reset_index().tail(120)   # reset index so 'date' becomes a column
+fig = px.line(df_plot, x='date', y='close', title='Recent Close Prices')
+st.plotly_chart(fig, use_container_width=True)
 
 # To run: `streamlit run streamlit_app.py`
+
 
