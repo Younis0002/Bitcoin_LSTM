@@ -90,27 +90,21 @@ if st.button("Get latest prediction"):
 
             st.write("Raw DataFrame preview:", df.head())
 
-          try:
-    # Normalize column names safely (handle tuple case)
-    df.columns = [str(c).lower() for c in df.columns]
+            # -------------------------
+            # Normalize column names safely (handle tuple case)
+            # -------------------------
+            df.columns = [str(c).lower() for c in df.columns]
 
-    expected_cols = ['open','high','low','close','volume']
-    missing = [c for c in expected_cols if c not in df.columns]
+            expected_cols = ['open', 'high', 'low', 'close', 'volume']
+            missing = [c for c in expected_cols if c not in df.columns]
 
-    if missing:
-        st.error(f"Downloaded data is missing expected columns: {missing}")
-        st.write("Available columns:", df.columns.tolist())
-        st.stop()
+            if missing:
+                st.error(f"Downloaded data is missing expected columns: {missing}")
+                st.write("Available columns:", df.columns.tolist())
+                st.stop()
 
-    df = df[expected_cols].copy()
-    df.index = pd.to_datetime(df.index)
-
-except Exception as e:
-    st.error(f"Column normalization failed: {e}")
-    st.write("Raw columns:", df.columns.tolist())
-    st.stop()
-
-
+            df = df[expected_cols].copy()
+            df.index = pd.to_datetime(df.index)
 
             # -------------------------
             # 2) Feature engineering
@@ -137,7 +131,6 @@ except Exception as e:
             # -------------------------
             features = ['close','volume','returns','rsi','macd','macd_signal','bb_h','bb_l','atr','ema20','sma50']
             X = df[features].values
-
             X_scaled = scaler_x.transform(X)
             X_seq = np.array([X_scaled[-LOOKBACK:]])
 
@@ -173,5 +166,3 @@ except Exception as e:
         except Exception as e:
             st.error(f"Unexpected error: {e}")
             st.exception(e)
-
-
