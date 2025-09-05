@@ -103,23 +103,33 @@ if st.button("Get latest prediction"):
         st.error("Scalers not loaded. Upload `scaler_x.save` and `scaler_y.save` to the repository.")
     else:
         try:
-            # -------------------------
-            # 1) Fetch data
-            # -------------------------
-            df = yf.download(symbol, period=f"{days_to_fetch}d", interval='1d', progress=False)
-            if df is None or df.empty:
-                st.error("No data returned by yfinance — try a larger period or check ticker.")
-                st.stop()
+           # -------------------------
+# 1) Fetch data
+# -------------------------
+df = yf.download(symbol, period=f"{days_to_fetch}d", interval='1d', progress=False)
 
-            # normalize columns: ensure we have OHLCV with expected names
-            if not set(['Open','High','Low','Close','Volume']).issubset(df.columns):
-                st.error("Downloaded data is missing expected OHLCV columns.")
-                st.write("Columns returned:", df.columns.tolist())
-                st.stop()
+if df is None or df.empty:
+    st.error("No data returned by yfinance — try a larger period or check ticker.")
+    st.write("Raw DataFrame:", df)  # show what came back
+    st.stop()
 
-            df = df[['Open','High','Low','Close','Volume']].copy()
-            df.columns = ['open','high','low','close','volume']
-            df.index = pd.to_datetime(df.index)
+st.write("Raw DataFrame preview:", df.head())  # 👀 debug help
+
+# Standardize column names (case-insensitive)
+df.columns = [c.lower() for c in df.columns]
+
+# Expect OHLCV
+expected_cols = ['open','high','low','close','volume']
+missing = [c for c in expected_cols if c not in df.columns]
+
+if missing:
+    st.error(f"Downloaded data is missing expected columns: {missing}")
+    st.write("Available columns:", df.columns.tolist())
+    st.stop()
+
+df = df[expected_cols].copy()
+df.index = pd.to_datetime(df.index)
+
 
             # -------------------------
             # 2) Feature engineering (same as training)
@@ -256,3 +266,4 @@ if st.button("Get latest prediction"):
             # catch-all: show friendly error plus stacktrace for debugging (Streamlit will redact full trace in logs)
             st.error(f"Unexpected error during prediction: {e}")
             st.exception(e)
+
