@@ -90,19 +90,26 @@ if st.button("Get latest prediction"):
 
             st.write("Raw DataFrame preview:", df.head())
 
-           # Normalize column names safely (handle tuple case)
-df.columns = [str(c).lower() for c in df.columns]
+          try:
+    # Normalize column names safely (handle tuple case)
+    df.columns = [str(c).lower() for c in df.columns]
 
-expected_cols = ['open','high','low','close','volume']
-missing = [c for c in expected_cols if c not in df.columns]
+    expected_cols = ['open','high','low','close','volume']
+    missing = [c for c in expected_cols if c not in df.columns]
 
-if missing:
-    st.error(f"Downloaded data is missing expected columns: {missing}")
-    st.write("Available columns:", df.columns.tolist())
+    if missing:
+        st.error(f"Downloaded data is missing expected columns: {missing}")
+        st.write("Available columns:", df.columns.tolist())
+        st.stop()
+
+    df = df[expected_cols].copy()
+    df.index = pd.to_datetime(df.index)
+
+except Exception as e:
+    st.error(f"Column normalization failed: {e}")
+    st.write("Raw columns:", df.columns.tolist())
     st.stop()
 
-df = df[expected_cols].copy()
-df.index = pd.to_datetime(df.index)
 
 
             # -------------------------
@@ -166,4 +173,5 @@ df.index = pd.to_datetime(df.index)
         except Exception as e:
             st.error(f"Unexpected error: {e}")
             st.exception(e)
+
 
