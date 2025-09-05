@@ -102,33 +102,34 @@ if st.button("Get latest prediction"):
     elif scaler_x is None or scaler_y is None:
         st.error("Scalers not loaded. Upload `scaler_x.save` and `scaler_y.save` to the repository.")
     else:
-        try:
-           # -------------------------
-# 1) Fetch data
-# -------------------------
-df = yf.download(symbol, period=f"{days_to_fetch}d", interval='1d', progress=False)
+       try:
+    df = yf.download(symbol, period=f"{days_to_fetch}d", interval='1d', progress=False)
 
-if df is None or df.empty:
-    st.error("No data returned by yfinance — try a larger period or check ticker.")
-    st.write("Raw DataFrame:", df)  # show what came back
+    if df is None or df.empty:
+        st.error("No data returned by yfinance — try a larger period or check ticker.")
+        st.write("Raw DataFrame:", df)
+        st.stop()
+
+    st.write("Raw DataFrame preview:", df.head())
+
+    # Standardize column names
+    df.columns = [c.lower() for c in df.columns]
+
+    # Expect OHLCV
+    expected_cols = ['open','high','low','close','volume']
+    missing = [c for c in expected_cols if c not in df.columns]
+
+    if missing:
+        st.error(f"Downloaded data is missing expected columns: {missing}")
+        st.write("Available columns:", df.columns.tolist())
+        st.stop()
+
+    df = df[expected_cols].copy()
+    df.index = pd.to_datetime(df.index)
+
+except Exception as e:
+    st.error(f"Data download failed: {e}")
     st.stop()
-
-st.write("Raw DataFrame preview:", df.head())  # 👀 debug help
-
-# Standardize column names (case-insensitive)
-df.columns = [c.lower() for c in df.columns]
-
-# Expect OHLCV
-expected_cols = ['open','high','low','close','volume']
-missing = [c for c in expected_cols if c not in df.columns]
-
-if missing:
-    st.error(f"Downloaded data is missing expected columns: {missing}")
-    st.write("Available columns:", df.columns.tolist())
-    st.stop()
-
-df = df[expected_cols].copy()
-df.index = pd.to_datetime(df.index)
 
 
             # -------------------------
@@ -266,4 +267,5 @@ df.index = pd.to_datetime(df.index)
             # catch-all: show friendly error plus stacktrace for debugging (Streamlit will redact full trace in logs)
             st.error(f"Unexpected error during prediction: {e}")
             st.exception(e)
+
 
