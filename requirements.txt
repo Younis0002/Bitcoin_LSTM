@@ -6,4 +6,4 @@ numpy
 pandas
 plotly
 scikit-learn
-tensorflow
+tensorflow==2.15.0
